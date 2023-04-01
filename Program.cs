@@ -7,16 +7,10 @@ namespace Bomberman
         [STAThread]
         static void Main(string[] arg)
         {
-            bool isServer = false;
-            if(arg.Length>0 && arg[0] == "1")
+            using (var game = new Bomberman())
             {
-                isServer = true;
-
-            }
-            Console.WriteLine("is server: " + isServer);
-
-            using (var game = new Game1())
                 game.Run();
+            }
         }
     }
 }
