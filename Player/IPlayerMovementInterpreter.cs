@@ -1,10 +1,21 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Bomberman
 {
-    public interface IPlayerMovementInterpreter
+    [Flags]
+    public enum Moves
     {
-        void Move(GameTime gameTime, KeyboardState keyboardState, Player player);
+        None = 0,
+        Up = 1,
+        Down = 2,
+        Left = 4,
+        Right = 8,
+        Bomb = 16,
+    }
+    public interface IPlayerKeyboardInterpreter
+    {
+        Moves GetMove(KeyboardState keyboardState);
     }
 }

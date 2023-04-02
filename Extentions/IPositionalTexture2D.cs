@@ -2,12 +2,16 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Bomberman
 {
-    public interface IPositionalTexture2D
+    public interface ITextureWidthAndHeight
+    {
+        float Width {get;}
+        float Height{get;}
+
+    }
+    public interface IPositionalTexture2D : ITextureWidthAndHeight
     {
         float XPos {get;set;}
-        float Width {get;}
         float YPos {get;set;}
-        float Height{get;}
         Texture2D GetTexture();
     }
 }

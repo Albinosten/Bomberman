@@ -9,21 +9,20 @@ namespace Bomberman
     {
         private GraphicsDeviceManagerNew graphics;
         private SpriteBatch spriteBatch;
-        private IList<Player> players {get;set;}
+        private Map map;
+        private IMapLoader mapLoader;
 
-        public Bomberman()
+        public Bomberman(IMapLoader mapLoader)
         {
             this.graphics = new GraphicsDeviceManagerNew(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-
-            this.players = new List<Player>();
+            this.mapLoader = mapLoader;
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
@@ -32,8 +31,11 @@ namespace Bomberman
             this.spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            this.players.Add(new Player(this.Content.Load<Texture2D>("ball"), this.graphics, new PlayerMovementInterpreter1()));
-            this.players.Add(new Player(this.Content.Load<Texture2D>("ball"), this.graphics, new PlayerMovementInterpreter2()));
+            this.map = this.mapLoader.Load(this.graphics, this.GraphicsDevice, this.Content);
+
+            this.graphics.PreferredBackBufferHeight = this.map.TileHeightCount * Tile.s_height;
+            this.graphics.PreferredBackBufferWidth = this.map.TileWidthCount * Tile.s_width;
+            this.graphics.ApplyChanges();
         }
 
         protected override void Update(GameTime gameTime)
@@ -44,10 +46,15 @@ namespace Bomberman
             }
             
             var keyboardState = Keyboard.GetState();
-            foreach(var player in players)
+            foreach(var player in map.Players)
             {
-                player.Move(gameTime, keyboardState);
+                player.Move(gameTime, keyboardState, map);
             }
+            foreach(var bomb in map.Bombs)
+            {
+                bomb.Update(gameTime, map);
+            }
+
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -60,9 +67,19 @@ namespace Bomberman
             // TODO: Add your drawing code here
             this.spriteBatch.Begin();
 
-            foreach(var player in players)
+            foreach(var player in this.map.Players )
             {
-                player.Draw(spriteBatch);
+                player.Draw(this.spriteBatch);
+            }
+
+            foreach(var tile in this.map.Tiles)
+            {
+                tile.Draw(this.spriteBatch);
+            }
+
+            foreach(var bomb in this.map.Bombs)
+            {
+                bomb.Draw(this.spriteBatch);
             }
 
             this.spriteBatch.End();
