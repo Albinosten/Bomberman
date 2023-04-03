@@ -14,6 +14,11 @@ namespace Bomberman
         void Move(GameTime gameTime, KeyboardState keyboardState, Map map);
         void Draw(SpriteBatch spriteBatch);
     }
+    public enum Players
+    {
+        One,
+        Two,
+    }
     public class Player : PositionalTexture2D, IPlayer
     {
         private readonly IPlayerKeyboardInterpreter playerMovementInterpreter;
@@ -32,7 +37,7 @@ namespace Bomberman
             this.XPos = this.graphics.PreferredBackBufferWidth/2;
             this.XSpeed = 150;
             this.YSpeed = 150;
-            this.scale = 0.3f;
+            this.Scale = 0.3f;
             this.playerMovementInterpreter = playerMovementInterpreter;
             this.collitionController = collitionController;
             this.graphicsDevice = graphicsDevice;
@@ -60,17 +65,7 @@ namespace Bomberman
         };
         public void Draw(SpriteBatch spriteBatch)
         {
-            var pos = new Vector2(this.XPos,this.YPos);
-            spriteBatch.Draw(this.GetTexture()
-                , position: pos
-                , sourceRectangle: null
-                , color: Color.White
-                , rotation: 0f
-                , origin: Vector2.Zero
-                , scale: this.scale
-                , effects: SpriteEffects.None
-                , layerDepth: 0f
-                );
+            DrawHelper.Draw(spriteBatch, this);
         }
         private void PlaceBomb(Map map)
         {

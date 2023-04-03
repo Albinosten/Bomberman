@@ -16,17 +16,17 @@ namespace BombermanExtention
             this.graphics = graphics;
             this.XSpeed = 1;
             this.YPos = 1;
-            this.scale = 1;
+            this.Scale = 1;
         }
         public Texture2D GetTexture()
         {
             return this.Texture;
         }
         public float XPos {get;set;}
-        public float Width => this.Texture.Width * this.scale;
+        public float Width => this.Texture.Width * this.Scale;
         public float YPos {get;set;}
-        public float Height => this.Texture.Height * this.scale;
-        public float scale {get;set;}
+        public float Height => this.Texture.Height * this.Scale;
+        public float Scale {get;set;}
         public int XSpeed {get;set;}
         public int YSpeed {get;set;}
         

@@ -11,15 +11,15 @@ namespace Bomberman
 
     public interface IBomb : IPositionalTexture2D
     {
+        bool IsExploded {get;}
         void Draw(SpriteBatch spriteBatch);
         void Update(GameTime gameTime, Map map);
     }
     public class Bomb : PositionalTexture2D, IBomb
     {
-        public static int s_width => 34;
+        public static int s_width => 18;
         private float? creationtime;
-        private static int s_numberOfRays => 120;
-        // private static int s_numberOfRays => 1;
+        private static int s_numberOfRays => 100;
 
         private IList<IBombRay> bombRays;
         private readonly ICollitionController collitionController;
@@ -32,12 +32,12 @@ namespace Bomberman
             , ITextureWidthAndHeight parent
             ) : base(new Texture2D(graphicsDevice, s_width, s_width), graphics)
         {
-            this.scale = 1f;
+            this.Scale = 1f;
             this.bombRays = new List<IBombRay>();
             this.collitionController = collitionController;
             this.graphicsDevice = graphicsDevice;
             this.parent = parent;
-            this.GetTexture().SetData(AddCircleWithColor(s_width,s_width/2, Color.Red));
+            this.GetTexture().SetData(AddCircleWithColor(s_width,s_width/2, Color.Black));
         }
         public static Color[] AddCircleWithColor(int width
             , int circleRadius
@@ -83,27 +83,17 @@ namespace Bomberman
         }
         public void Draw(SpriteBatch spriteBatch)
         {
-            var pos = new Vector2(this.XPos,this.YPos);
-            // spriteBatch.Draw(this.GetTexture()
-            //     , position: pos
-            //     , sourceRectangle: null
-            //     , color: Color.White
-            //     , rotation: 0f
-            //     , origin: Vector2.Zero
-            //     , scale: this.scale
-            //     , effects: SpriteEffects.None
-            //     , layerDepth: 0f
-            //     );
+            DrawHelper.Draw(spriteBatch, this);
             for(int i = 0; i < this.bombRays.Count; i++)
             {
                 this.bombRays[i].Draw(spriteBatch);
             }
         }
 
-        private bool isExploded = false;
+        public bool IsExploded {get;private set;}
         public void Update(GameTime gameTime, Map map)
         {
-            if(isExploded)
+            if(IsExploded)
             {
                 return;
             }
@@ -139,10 +129,10 @@ namespace Bomberman
             {
                 this.bombRays[i].Update(gameTime, map);
             }
-            if(gameTime.TotalGameTime.TotalSeconds - (this.creationtime ?? 0f) > 10)
+            if(gameTime.TotalGameTime.TotalSeconds - (this.creationtime ?? 0f) > 5)
             {
                 this.bombRays.Clear();
-                this.isExploded = true;
+                this.IsExploded = true;
             }
         }
 

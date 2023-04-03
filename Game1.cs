@@ -31,10 +31,10 @@ namespace Bomberman
             this.spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            this.map = this.mapLoader.Load(this.graphics, this.GraphicsDevice, this.Content);
+            this.map =  this.mapLoader.Load(this.graphics, this.GraphicsDevice, this.Content);
 
-            this.graphics.PreferredBackBufferHeight = this.map.TileHeightCount * Tile.s_height;
-            this.graphics.PreferredBackBufferWidth = this.map.TileWidthCount * Tile.s_width;
+            this.graphics.PreferredBackBufferHeight = this.map.TileCount.Hight * Tile.s_height;
+            this.graphics.PreferredBackBufferWidth = this.map.TileCount.Width * Tile.s_width;
             this.graphics.ApplyChanges();
         }
 
@@ -50,9 +50,18 @@ namespace Bomberman
             {
                 player.Move(gameTime, keyboardState, map);
             }
+            var explodedBombs = new List<IBomb>();
             foreach(var bomb in map.Bombs)
             {
                 bomb.Update(gameTime, map);
+                if(bomb.IsExploded)
+                {
+                    explodedBombs.Add(bomb);
+                }
+            }
+            foreach (var exploded in explodedBombs)
+            {
+                map.Bombs.Remove(exploded);
             }
 
             // TODO: Add your update logic here

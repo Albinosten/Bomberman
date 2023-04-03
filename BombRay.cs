@@ -17,7 +17,7 @@ namespace Bomberman
         private float lenght;
         public static int s_width => 1;
         public static int s_height => 1;
-        private int s_speed => 25;
+        private int s_speed => 90;
 
         private readonly ICollitionController collitionController;
         private float rotation;
@@ -40,6 +40,7 @@ namespace Bomberman
                 , this.startPos ?? pos
                 , pos
                 , Color.Red
+                , 10
                 );
         }
         
