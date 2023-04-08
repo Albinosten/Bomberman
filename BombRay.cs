@@ -47,6 +47,11 @@ namespace Bomberman
         private bool hasColided;
         public void Update(GameTime gameTime, Map map)
         {
+            foreach(var player in map.Players.Where(x => this.collitionController.HasColition(this, x)))
+            {
+                player.Kill();
+            }
+            
             this.startPos = this.startPos ?? new Vector2(this.XPos, this.YPos);
             if(!this.hasColided && !this.collitionController.HasColition(map.Tiles.ToList<IPositionalTexture2D>(), this))
             {
@@ -58,6 +63,7 @@ namespace Bomberman
             {
                 this.hasColided = true;
             }
+            
         }
     }
 }

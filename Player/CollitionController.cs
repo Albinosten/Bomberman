@@ -9,7 +9,9 @@ namespace Bomberman
         bool CanMoveUp(IList<IPositionalTexture2D> tiles, IPositionalTexture2D player);
         bool CanMoveDown(IList<IPositionalTexture2D> tiles, IPositionalTexture2D player, int maxHeight);
         bool HasColition(IList<IPositionalTexture2D> tile, IPositionalTexture2D player);
-    }    public class CollitionController : ICollitionController
+        bool HasColition(IPositionalTexture2D tile, IPositionalTexture2D player);
+    }
+    public class CollitionController : ICollitionController
     {
         public bool CanMoveLeft(IList<IPositionalTexture2D> tiles, IPositionalTexture2D player)
         {
@@ -80,11 +82,16 @@ namespace Bomberman
                     && (int)object2.XPos + (int)object2.Width > (int)object1.XPos;
         }
 
+        public bool HasColition(IPositionalTexture2D tile, IPositionalTexture2D player)
+        {
+            return this.CanMove(player, tile);
+        }
+
         public bool HasColition(IList<IPositionalTexture2D> tiles, IPositionalTexture2D player)
         {
             foreach (var tile in tiles)
             {
-                if(this.CanMove(player, tile))
+                if(this.HasColition(tile, player))
                 {
                     return true;
                 }

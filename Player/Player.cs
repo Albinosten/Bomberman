@@ -10,7 +10,9 @@ namespace Bomberman
 {
     public interface IPlayer : IPositionalTexture2D
     {
-        int XSpeed {get;}
+        int XSpeed { get; }
+        bool IsDead{ get; }
+        void Kill();
         void Move(GameTime gameTime, KeyboardState keyboardState, Map map);
         void Draw(SpriteBatch spriteBatch);
     }
@@ -26,6 +28,8 @@ namespace Bomberman
         private readonly GraphicsDevice graphicsDevice;
         private bool checkCollition;
         private int maxNumberOfBombs => 3;
+
+        public bool IsDead { get; private set; }
 
         public Player(Texture2D texture
             , IGraphicsDeviceManagerNew graphics
@@ -46,6 +50,7 @@ namespace Bomberman
 
         public void Move(GameTime gameTime, KeyboardState keyboardState, Map map)
         {
+            if(this.IsDead)return;
             var moves = this.playerMovementInterpreter.GetMove(keyboardState);
             foreach (Moves value in Enum.GetValues<Moves>().Where(x => moves.HasFlag(x)))
             {
@@ -65,6 +70,7 @@ namespace Bomberman
         };
         public void Draw(SpriteBatch spriteBatch)
         {
+            if(this.IsDead)return;
             DrawHelper.Draw(spriteBatch, this);
         }
         private void PlaceBomb(Map map)
@@ -139,6 +145,11 @@ namespace Bomberman
             player.Move(move)(new Map(), x);
             
             return player;
+        }
+
+        public void Kill()
+        {
+            this.IsDead = true;
         }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Bomberman
 {
@@ -44,8 +45,12 @@ namespace Bomberman
             {
                 this.Exit();
             }
-            
             var keyboardState = Keyboard.GetState();
+            if(keyboardState.IsKeyDown(Keys.R))
+            {
+                this.Initialize();
+            }
+            
             foreach(var player in map.Players)
             {
                 player.Move(gameTime, keyboardState, map);
