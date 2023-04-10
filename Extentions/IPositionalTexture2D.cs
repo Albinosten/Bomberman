@@ -12,7 +12,7 @@ namespace Bomberman
     {
         float XPos {get;set;}
         float YPos {get;set;}
-        float Scale {get;set;}
+        float Scale {get;}
         Texture2D GetTexture();
     }
 }

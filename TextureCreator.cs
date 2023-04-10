@@ -1,14 +1,22 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace Bomberman
+
+namespace BombermanExtention
 {
     public static class TextureCreator
     {
-        public static  Color[] CreateTileTexture((int width, int height) size, Color color)
+        public static Texture2D CreateBombrayTexture(int width, int height,GraphicsDevice graphicsDevice)
         {
-            return CreateTileTexture(size.width, size.height, color);
+            var texture = new Texture2D(graphicsDevice, width, height);
+            texture.SetData(GetColorData(width, height, Color.Purple));
+            return texture;
         }
-        public static  Color[] CreateTileTexture(int width, int height, Color color)
+        public static  Color[] CreateTileTextureData((int width, int height) size, Color color)
+        {
+            return CreateTileTextureData(size.width, size.height, color);
+        }
+        public static  Color[] CreateTileTextureData(int width, int height, Color color)
         {
             Color[] data = new Color[width*height];
             for(int i=0; i < data.Length; ++i) 
@@ -32,6 +40,18 @@ namespace Bomberman
                     data[i] = color;
 
                 }
+            }
+            return data;
+        }
+        private static Color[] GetColorData(int width
+            , int height
+            , Color color
+            )
+        {
+            Color[] data = new Color[width*width];
+            for(var i = 0; i< width*width;i++)
+            {
+                data[i] = color;
             }
             return data;
         }

@@ -26,6 +26,7 @@ namespace Bomberman
         private readonly IPlayerKeyboardInterpreter playerMovementInterpreter;
         private readonly ICollitionController collitionController;
         private readonly GraphicsDevice graphicsDevice;
+        private readonly IBombRayFactory bombRayFactory;
         private bool checkCollition;
         private int maxNumberOfBombs => 3;
 
@@ -36,6 +37,7 @@ namespace Bomberman
             , IPlayerKeyboardInterpreter playerMovementInterpreter
             , ICollitionController collitionController
             , GraphicsDevice graphicsDevice
+            , IBombRayFactory bombRayFactory
             ): base(texture, graphics)
         {
             this.XPos = this.graphics.PreferredBackBufferWidth/2;
@@ -45,6 +47,7 @@ namespace Bomberman
             this.playerMovementInterpreter = playerMovementInterpreter;
             this.collitionController = collitionController;
             this.graphicsDevice = graphicsDevice;
+            this.bombRayFactory = bombRayFactory;
             checkCollition = true;
         }
 
@@ -79,6 +82,7 @@ namespace Bomberman
                 , this.collitionController
                 , this.graphicsDevice
                 , this
+                , this.bombRayFactory
                 )
             {
                 XPos = this.XPos,
@@ -128,7 +132,7 @@ namespace Bomberman
             }
         }
         public Player(IPlayer player, IGraphicsDeviceManagerNew graphics) 
-            : this(player.GetTexture(), graphics, null, null, null) 
+            : this(player.GetTexture(), graphics, null, null, null, null) 
             //Used for collition handling by creating a clone of player and apply movement
             //before checking collitions
             //Maybe its called raycasting? or maybe not.. because im not checking every position inbetweed. only last

@@ -13,7 +13,7 @@ namespace Bomberman
             this.Scale = 1f;
             this.GetTexture()
                 .SetData(TextureCreator
-                    .CreateTileTexture((int)this.Width, (int)this.Height, Color.Gray));
+                    .CreateTileTextureData((int)this.Width, (int)this.Height, Color.Gray));
 
         }
         private static (int, int) getSize((int x, int y) mapSize)

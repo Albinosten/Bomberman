@@ -19,17 +19,19 @@ namespace Bomberman
     {
         public static int s_width => 18;
         private float? creationtime;
-        private static int s_numberOfRays => 100;
+        public static int s_numberOfRays => 100;
 
         private IList<IBombRay> bombRays;
         private readonly ICollitionController collitionController;
         private GraphicsDevice graphicsDevice;
         private readonly ITextureWidthAndHeight parent;
+        private readonly IBombRayFactory bombRayFactory;
 
         public Bomb(IGraphicsDeviceManagerNew graphics
             , ICollitionController collitionController
             , GraphicsDevice graphicsDevice
             , ITextureWidthAndHeight parent
+            , IBombRayFactory bombRayFactory
             ) : base(new Texture2D(graphicsDevice, s_width, s_width), graphics)
         {
             this.Scale = 1f;
@@ -37,6 +39,7 @@ namespace Bomberman
             this.collitionController = collitionController;
             this.graphicsDevice = graphicsDevice;
             this.parent = parent;
+            this.bombRayFactory = bombRayFactory;
             this.GetTexture().SetData(AddCircleWithColor(s_width,s_width/2, Color.Black));
         }
         public static Color[] AddCircleWithColor(int width
@@ -97,33 +100,20 @@ namespace Bomberman
             {
                 return;
             }
-            if(!this.creationtime.HasValue)
-            {
-                this.creationtime = (float)gameTime.TotalGameTime.TotalSeconds;
-            }
-            if(gameTime.TotalGameTime.TotalSeconds - (this.creationtime ?? 0f) > 3 
+            var totalSeconds = (float)gameTime.TotalGameTime.TotalSeconds;
+            this.creationtime = this.creationtime 
+                ?? totalSeconds;
+            
+            if(totalSeconds - (this.creationtime ?? 0f) > 3 
                 && this.bombRays.Count == decimal.Zero)
             {
-                float rotation = 0;
-                float rotationStep = (float)s_numberOfRays / 6;
-                
-                var texture = new Texture2D(graphicsDevice, BombRay.s_width, BombRay.s_height);
-                texture.SetData(GetColorData(BombRay.s_width, BombRay.s_height));
-
-                for(int i = 0; i < s_numberOfRays; i++)
-                {
-                    this.bombRays.Add(new BombRay(this.graphics
-                        , this.collitionController
-                        , this.graphicsDevice
-                        , texture
-                        , rotation
-                        )
-                        {
-                            XPos = this.XPos + (this.parent.Width / 2),
-                            YPos = this.YPos + (this.parent.Height / 2),
-                        });
-                    rotation+=rotationStep;
-                }
+                this.bombRays = this.bombRayFactory
+                    .Create(this.graphicsDevice
+                    , this
+                    , this.graphics
+                    , this.collitionController
+                    , map.Tiles.ToList<IPositionalTexture2D>()
+                    );
             }
             for(int i = 0; i < this.bombRays.Count; i++)
             {
@@ -134,18 +124,98 @@ namespace Bomberman
                 this.bombRays.Clear();
                 this.IsExploded = true;
             }
-        }
+        }        
+    }
+    public interface IBombRayFactory
+    {
+        List<IBombRay> Create(GraphicsDevice graphicsDevice
+            , IPositionalTexture2D parent
+            , IGraphicsDeviceManagerNew graphics
+            , ICollitionController collitionController
+            , IList<IPositionalTexture2D> tiles
+            );
+    }
+    public class BombRayFactory : IBombRayFactory
+    {
+        private readonly ICollitionController collitionController;
 
-        private static Color[] GetColorData(int width
-            , int height
+        public BombRayFactory(ICollitionController collitionController)
+        {
+            this.collitionController = collitionController;
+        }
+        public List<IBombRay> Create(GraphicsDevice graphicsDevice
+            , IPositionalTexture2D parent
+            , IGraphicsDeviceManagerNew graphics
+            , ICollitionController collitionController
+            , IList<IPositionalTexture2D> tiles
             )
         {
-            Color[] data = new Color[width*width];
-            for(var i = 0; i< width*width;i++)
+            var bombRays = new List<IBombRay>();
+            float rotation = 0;
+            float rotationStep = (float)Bomb.s_numberOfRays / 6;
+            
+            var texture =  TextureCreator
+                .CreateBombrayTexture(BombRay.s_height
+                    , BombRay.s_width
+                    , graphicsDevice
+                    );
+            for(int i = 0; i < Bomb.s_numberOfRays; i++)
             {
-                data[i] = Color.Purple;
+                var pixel = new Pixel(new Vector2(parent.XPos + (parent.Width / 2),  parent.YPos + (parent.Height / 2))
+                    , rotation
+                    );
+
+                while(!collitionController.HasColition(tiles,pixel))
+                {
+                    pixel.Update(10f);
+                }
+                bombRays.Add(new BombRay(graphics
+                    , this.collitionController
+                    , graphicsDevice
+                    , texture
+                    , rotation
+                    , pixel.lenght
+                    )
+                    {
+                        XPos = parent.XPos + (parent.Width / 2),
+                        YPos = parent.YPos + (parent.Height / 2),
+                    });
+                rotation += rotationStep;
             }
-            return data;
+            return bombRays;
+        }
+        private class Pixel : IPositionalTexture2D
+        {
+            public Pixel(Vector2 startPos, float rotation)
+            {
+                this.startPos = startPos;
+                this.rotation = rotation;
+                this.XPos = startPos.X;
+                this.YPos = startPos.Y;
+            }
+            public float lenght;
+            private Vector2 startPos;
+            private readonly float rotation;
+
+            public float XPos{get;set;}
+            public float YPos {get;set;}
+            public float Scale => 1;
+
+            public float Width => 1;
+
+            public float Height => 1;
+            public void Update(float lenght)
+            {
+                this.lenght += lenght;
+                this.XPos = this.startPos.X + (this.lenght * (float)Math.Cos(this.rotation));
+                this.YPos = this.startPos.Y + (this.lenght * (float)Math.Sin(this.rotation));
+            }
+
+            public Texture2D GetTexture()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
+    
 }

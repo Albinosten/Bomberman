@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace Bomberman
 {
@@ -12,6 +14,8 @@ namespace Bomberman
         private SpriteBatch spriteBatch;
         private Map map;
         private IMapLoader mapLoader;
+        private IBombRayFactory bombRayFactory;
+        private CollitionController collitionController;
 
         public Bomberman(IMapLoader mapLoader)
         {
@@ -24,6 +28,9 @@ namespace Bomberman
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            this.collitionController = new CollitionController();
+            this.bombRayFactory = new BombRayFactory(this.collitionController);
+
             base.Initialize();
         }
 
@@ -32,7 +39,13 @@ namespace Bomberman
             this.spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            this.map =  this.mapLoader.Load(this.graphics, this.GraphicsDevice, this.Content);
+            this.map =  this.mapLoader
+                .Load(this.graphics
+                    , this.GraphicsDevice
+                    , this.Content
+                    , this.collitionController
+                    , this.bombRayFactory
+                    );
 
             this.graphics.PreferredBackBufferHeight = this.map.TileCount.Hight * Tile.s_height;
             this.graphics.PreferredBackBufferWidth = this.map.TileCount.Width * Tile.s_width;
@@ -55,6 +68,7 @@ namespace Bomberman
             {
                 player.Move(gameTime, keyboardState, map);
             }
+            
             var explodedBombs = new List<IBomb>();
             foreach(var bomb in map.Bombs)
             {
@@ -68,12 +82,15 @@ namespace Bomberman
             {
                 map.Bombs.Remove(exploded);
             }
-
+            var indexes = new List<int>(map.Bombs.Count);
+            for(int i = 0; i < map.Bombs.Count; i++)
+            {
+                indexes.Add(i);
+            }
             // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
-
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -81,7 +98,7 @@ namespace Bomberman
             // TODO: Add your drawing code here
             this.spriteBatch.Begin();
 
-            foreach(var player in this.map.Players )
+            foreach(var player in this.map.Players)
             {
                 player.Draw(this.spriteBatch);
             }

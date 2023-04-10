@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
+using BombermanExtention;
 
 namespace Bomberman
 {
@@ -26,6 +27,8 @@ namespace Bomberman
         Map Load(IGraphicsDeviceManagerNew graphics
             , GraphicsDevice graphicsDevice
             , ContentManager contentManager
+            , ICollitionController collitionController
+            , IBombRayFactory bombRayFactory
             );
     }
     public class TileCreator
@@ -35,7 +38,7 @@ namespace Bomberman
         {
             this.tileTexture = new Texture2D(graphicsDevice, Tile.s_height, Tile.s_width);
             this.tileTexture
-                .SetData(TextureCreator.CreateTileTexture(Tile.s_height, Tile.s_width, Color.Gray));
+                .SetData(TextureCreator.CreateTileTextureData(Tile.s_height, Tile.s_width, Color.Gray));
         }
         public ITile Create(IGraphicsDeviceManagerNew graphics
             , GraphicsDevice graphicsDevice
@@ -91,6 +94,8 @@ namespace Bomberman
         public Map Load(IGraphicsDeviceManagerNew graphics
         , GraphicsDevice graphicsDevice
         , ContentManager ContentManager
+        , ICollitionController collitionController
+        , IBombRayFactory bombRayFactory
         )
         {
             var tileCreator = new TileCreator(graphicsDevice);
@@ -116,8 +121,9 @@ namespace Bomberman
                             players.Add(new Player(ContentManager.Load<Texture2D>("ball")
                                 , graphics
                                 , new PlayerKeyboardInterpreter1()
-                                , new CollitionController()
+                                , collitionController
                                 , graphicsDevice
+                                , bombRayFactory
                                 )
                                 {
                                     XPos = Tile.s_width * (x + 1),
@@ -129,8 +135,9 @@ namespace Bomberman
                             players.Add( new Player(ContentManager.Load<Texture2D>("ball")
                                 , graphics
                                 , new PlayerKeyboardInterpreter2()
-                                , new CollitionController()
+                                , collitionController
                                 , graphicsDevice
+                                , bombRayFactory
                                 )
                                 {
                                     XPos = Tile.s_width * (x + 1),
