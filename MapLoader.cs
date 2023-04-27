@@ -9,18 +9,82 @@ using BombermanExtention;
 
 namespace Bomberman
 {
+    public static class MapExtention
+    {
+        public static Map Clone(this Map map, IPlayer player)
+        {
+            return new Map
+            {
+                Tiles = map.Tiles,
+                Bombs = map.Bombs,
+                Players = map.Players.Where(x => x != player).ToList(),
+                TileCount = map.TileCount,
+                GraphicMax = map.GraphicMax,
+            };
+        }
+    }
     public class Map
     {
         public (int Hight, int Width) TileCount {get;set;}
+        public (int Hight, int Width) GraphicMax {get;set;}
         public Map()
         {
-            this.Tiles = new List<ITile>();
+            this.Tiles = new List<IPositionalTexture2D>();
             this.Players = new List<IPlayer>();
             this.Bombs = new List<IBomb>();
         }
-        public IList<ITile> Tiles{get;set;}
+        public IList<IPositionalTexture2D> Tiles{get;set;}
         public IList<IPlayer> Players {get;set;}
         public IList<IBomb> Bombs {get;set;}
+        public void PrintBitmap(IList<IList<int>> map)
+        {
+            Console.WriteLine("*****************");
+
+            for(int y = 0; y < map[0].Count; y++)
+            {
+                Console.WriteLine();
+                for(int x = 0; x < map.Count; x++)
+                {
+                    Console.Write(map[x][y]);
+                }
+            }
+        }
+        public IList<IList<int>> GetBitMap(bool withPlayers)
+        {
+            var result = new List<IList<int>>();
+            for(int x = 0; x < this.TileCount.Width; x++)
+            {
+                result.Add(new List<int>());   
+                for(int y = 0; y < this.TileCount.Hight; y++)
+                {
+                    var value = (y == 0 
+                        || y == this.TileCount.Hight - 1
+                        || x == 0
+                        || x == this.TileCount.Width -1
+                        ) 
+                        ? 1 
+                        : 0;
+                    result[x].Add(value);
+                }
+            }
+            foreach(var tile in this.Tiles)
+            {
+                var x = (int)tile.XPos/Tile.s_width;
+                var y = (int)tile.YPos/Tile.s_height;
+                result[x][y] = 1;
+            }
+            if(withPlayers)
+            {
+                foreach(var player in this.Players)
+                {
+                    var x = (int)player.XPos/Tile.s_width;
+                    var y = (int)player.YPos/Tile.s_height;
+                    result[x][y] = 2;
+                }
+            }
+            // result[(int)p.XPos/Tile.s_width][(int)p.YPos/Tile.s_height] = 9;
+            return result;
+        }
     }
     public interface IMapLoader
     {
@@ -29,6 +93,7 @@ namespace Bomberman
             , ContentManager contentManager
             , ICollitionController collitionController
             , IBombRayFactory bombRayFactory
+            , int mapNumber
             );
     }
     public class TileCreator
@@ -96,14 +161,18 @@ namespace Bomberman
         , ContentManager ContentManager
         , ICollitionController collitionController
         , IBombRayFactory bombRayFactory
+        , int mapnumber
         )
         {
             var tileCreator = new TileCreator(graphicsDevice);
 
-            var tiles = new List<ITile>();
+            var tiles = new List<IPositionalTexture2D>();
             var players = new List<IPlayer>();
             (int x, int y) tileCount = (0,0);
-            var filePath = "Maps/map1.txt";
+
+            var numberOfMaps = Directory.GetFiles("Maps/").Count();
+            var currentMap = mapnumber % numberOfMaps;
+            var filePath = $"Maps/map{currentMap}.txt";
             if(File.Exists(filePath))
             {
                 var lines = File.ReadAllLines(filePath).ToList();
@@ -128,13 +197,14 @@ namespace Bomberman
                                 {
                                     XPos = Tile.s_width * (x + 1),
                                     YPos = Tile.s_height * (y + 1),
+                                    Name = "My name",
                                 });
                         }
                         if(lines[y][x] == 'b')
                         {
                             players.Add( new Player(ContentManager.Load<Texture2D>("ball")
                                 , graphics
-                                , new PlayerKeyboardInterpreter2()
+                                , new AiBasedPlayer(collitionController, graphics)
                                 , collitionController
                                 , graphicsDevice
                                 , bombRayFactory
@@ -142,6 +212,7 @@ namespace Bomberman
                                 {
                                     XPos = Tile.s_width * (x + 1),
                                     YPos = Tile.s_height * (y + 1),
+                                    Name = "bot",
                                 });
                         }
                     }
@@ -153,6 +224,7 @@ namespace Bomberman
                 Tiles = tiles,
                 Players = players,
                 TileCount = (tileCount.y, tileCount.x),
+                GraphicMax = (graphics.PreferredBackBufferHeight, graphics.PreferredBackBufferWidth),
             };
         }
     }

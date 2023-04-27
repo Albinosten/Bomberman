@@ -16,7 +16,6 @@ namespace Bomberman
         private IMapLoader mapLoader;
         private IBombRayFactory bombRayFactory;
         private CollitionController collitionController;
-
         public Bomberman(IMapLoader mapLoader)
         {
             this.graphics = new GraphicsDeviceManagerNew(this);
@@ -34,6 +33,7 @@ namespace Bomberman
             base.Initialize();
         }
 
+        private int mapNumber = 0;
         protected override void LoadContent()
         {
             this.spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -45,6 +45,7 @@ namespace Bomberman
                     , this.Content
                     , this.collitionController
                     , this.bombRayFactory
+                    , this.mapNumber
                     );
 
             this.graphics.PreferredBackBufferHeight = this.map.TileCount.Hight * Tile.s_height;
@@ -52,8 +53,10 @@ namespace Bomberman
             this.graphics.ApplyChanges();
         }
 
+        double timeout = 1;
         protected override void Update(GameTime gameTime)
         {
+            timeout -= gameTime.ElapsedGameTime.TotalSeconds;
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 this.Exit();
@@ -63,10 +66,20 @@ namespace Bomberman
             {
                 this.Initialize();
             }
+            if(keyboardState.IsKeyDown(Keys.P))
+            {
+                map.PrintBitmap(map.GetBitMap(true));
+            }
+            if(keyboardState.IsKeyDown(Keys.N) && this.timeout < 0)
+            {
+                this.timeout = 1;
+                this.mapNumber++;
+                this.Initialize();
+            }
             
             foreach(var player in map.Players)
             {
-                player.Move(gameTime, keyboardState, map);
+                player.Move(gameTime, keyboardState, map.Clone(player));
             }
             
             var explodedBombs = new List<IBomb>();

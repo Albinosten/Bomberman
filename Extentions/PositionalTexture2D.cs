@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
 using Bomberman;
+using Microsoft.Xna.Framework;
 
 namespace BombermanExtention
 {
 
-    public class PositionalTexture2D : IPositionalTexture2D
+    public abstract class PositionalTexture2D : IPositionalTexture2D
     {
         protected Texture2D Texture{get;set;}
         protected IGraphicsDeviceManagerNew graphics;
@@ -22,6 +21,12 @@ namespace BombermanExtention
         {
             return this.Texture;
         }
+
+        public virtual void Draw(SpriteBatch spriteBatch)
+        {
+            DrawHelper.Draw(spriteBatch, this);
+        }
+
         public float XPos {get;set;}
         public float Width => this.Texture.Width * this.Scale;
         public float YPos {get;set;}
@@ -30,9 +35,8 @@ namespace BombermanExtention
         public int XSpeed {get;set;}
         public int YSpeed {get;set;}
         
-
-        
         public bool IsColiding {get;set;}
-        
+        public Vector2 Position => new Vector2(this.XPos, this.YPos);
+        public Vector2 PositionCenter => new Vector2(this.XPos - (this.Width/2), this.YPos- (this.Height/2));
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Bomberman
@@ -14,5 +15,7 @@ namespace Bomberman
         float YPos {get;set;}
         float Scale {get;}
         Texture2D GetTexture();
+        Vector2 Position {get;}
+        void Draw(SpriteBatch spriteBatch);
     }
 }

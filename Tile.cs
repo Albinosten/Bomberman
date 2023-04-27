@@ -6,12 +6,11 @@ namespace Bomberman
 {
     public interface ITile : IPositionalTexture2D
     {
-        void Draw(SpriteBatch spriteBatch);
     }
     public class Tile : PositionalTexture2D, ITile
     {
-        public static int s_height => 34;
-        public static int s_width => 34;
+        public static int s_height => 35;
+        public static int s_width => 35;
         public Tile(IGraphicsDeviceManagerNew graphics
             , GraphicsDevice graphicsDevice
             , Texture2D texture
@@ -20,7 +19,7 @@ namespace Bomberman
             this.Scale = 1f;
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             var myBallVector = new Vector2(this.XPos,this.YPos);
             spriteBatch.Draw(this.GetTexture()

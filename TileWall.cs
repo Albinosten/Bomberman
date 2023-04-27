@@ -21,7 +21,7 @@ namespace Bomberman
             return (mapSize.x * Tile.s_width, mapSize.y * Tile.s_height);
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             DrawHelper.Draw(spriteBatch, this);
         }

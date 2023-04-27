@@ -81,6 +81,11 @@ namespace Bomberman
                 return (int)object2.XPos < (int)object1.XPos + (int)object1.Width
                     && (int)object2.XPos + (int)object2.Width > (int)object1.XPos;
         }
+        // private bool CanMoveHorizontal(IPositionalTexture2D object1, IPositionalTexture2D object2)
+        // {
+        //         return object2.XPos < object1.XPos + object1.Width
+        //             && object2.XPos + object2.Width > object1.XPos;
+        // }
 
         public bool HasColition(IPositionalTexture2D tile, IPositionalTexture2D player)
         {

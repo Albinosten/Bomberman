@@ -9,7 +9,6 @@ namespace Bomberman
 
     public interface IBombRay : IPositionalTexture2D
     {
-        void Draw(SpriteBatch spriteBatch);
         void Update(GameTime gameTime, Map map);
     }
     public class BombRay : PositionalTexture2D , IBombRay
@@ -37,7 +36,7 @@ namespace Bomberman
         }
         private Vector2? startPos;
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             var pos = new Vector2(this.XPos,this.YPos);
             Line.DrawLine(spriteBatch
@@ -48,7 +47,6 @@ namespace Bomberman
                 );
         }
         
-        private bool hasColided;
         public void Update(GameTime gameTime, Map map)
         {
             foreach(var player in map.Players.Where(x => this.collitionController.HasColition(this, x)))

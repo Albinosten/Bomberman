@@ -1,11 +1,10 @@
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Bomberman
 {
     public class PlayerKeyboardInterpreter2 : IPlayerKeyboardInterpreter
     {
-        public Moves GetMove(KeyboardState keyboardState) 
+        public Moves GetMove(KeyboardState keyboardState, Map _, IPlayer __, double gameTime)
         {
             var move = Moves.None;
             if(keyboardState.IsKeyDown(Keys.Up)) move |= Moves.Up;

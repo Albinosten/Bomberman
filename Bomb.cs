@@ -12,7 +12,6 @@ namespace Bomberman
     public interface IBomb : IPositionalTexture2D
     {
         bool IsExploded {get;}
-        void Draw(SpriteBatch spriteBatch);
         void Update(GameTime gameTime, Map map);
     }
     public class Bomb : PositionalTexture2D, IBomb
@@ -84,7 +83,7 @@ namespace Bomberman
 
             return deltax * deltax + deltay * deltay;
         }
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             DrawHelper.Draw(spriteBatch, this);
             for(int i = 0; i < this.bombRays.Count; i++)
@@ -135,7 +134,7 @@ namespace Bomberman
             , IList<IPositionalTexture2D> tiles
             );
     }
-    public class BombRayFactory : IBombRayFactory
+    public partial class BombRayFactory : IBombRayFactory
     {
         private readonly ICollitionController collitionController;
 
@@ -167,7 +166,7 @@ namespace Bomberman
 
                 while(!collitionController.HasColition(tiles,pixel))
                 {
-                    pixel.Update(10f);
+                    pixel.Update(5f);
                 }
                 bombRays.Add(new BombRay(graphics
                     , this.collitionController
@@ -184,38 +183,5 @@ namespace Bomberman
             }
             return bombRays;
         }
-        private class Pixel : IPositionalTexture2D
-        {
-            public Pixel(Vector2 startPos, float rotation)
-            {
-                this.startPos = startPos;
-                this.rotation = rotation;
-                this.XPos = startPos.X;
-                this.YPos = startPos.Y;
-            }
-            public float lenght;
-            private Vector2 startPos;
-            private readonly float rotation;
-
-            public float XPos{get;set;}
-            public float YPos {get;set;}
-            public float Scale => 1;
-
-            public float Width => 1;
-
-            public float Height => 1;
-            public void Update(float lenght)
-            {
-                this.lenght += lenght;
-                this.XPos = this.startPos.X + (this.lenght * (float)Math.Cos(this.rotation));
-                this.YPos = this.startPos.Y + (this.lenght * (float)Math.Sin(this.rotation));
-            }
-
-            public Texture2D GetTexture()
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
-    
 }
