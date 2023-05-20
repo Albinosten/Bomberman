@@ -30,27 +30,31 @@ namespace Bomberman
         private readonly GraphicsDevice graphicsDevice;
         private readonly IBombRayFactory bombRayFactory;
         private bool checkCollition;
+        public static int s_width => 24;
         private int maxNumberOfBombs => 3;
 
         public bool IsDead { get; private set; }
         public string Name {get;set;}
-        public Player(Texture2D texture
+        public Player(Color[] texture
             , IGraphicsDeviceManagerNew graphics
             , IPlayerKeyboardInterpreter playerMovementInterpreter
             , ICollitionController collitionController
             , GraphicsDevice graphicsDevice
             , IBombRayFactory bombRayFactory
-            ): base(texture, graphics)
+            ): base(new Texture2D(graphicsDevice, s_width, s_width), graphics)
         {
             this.XPos = this.graphics.PreferredBackBufferWidth/2;
             this.XSpeed = 150;
             this.YSpeed = 150;
-            this.Scale = 0.4f;
             this.playerMovementInterpreter = playerMovementInterpreter;
             this.collitionController = collitionController;
             this.graphicsDevice = graphicsDevice;
             this.bombRayFactory = bombRayFactory;
             checkCollition = true;
+            if(texture != null)
+            {
+                this.GetTexture().SetData(texture);
+            }
         }
 
         public void Move(GameTime gameTime, KeyboardState keyboardState, Map map)
@@ -61,8 +65,6 @@ namespace Bomberman
             {
                 var move = this.Move(value);
                 var result = move(map, gameTime.ElapsedGameTime.TotalSeconds);
-                // Console.WriteLine(this.Name);
-                // Console.WriteLine("Move: " + value + " CanMove:" + result);
             }
         }
         public Func<Map, double, bool> Move(Moves move) => move switch
@@ -71,6 +73,12 @@ namespace Bomberman
             Moves.Down => (t,x) => this.MoveDown(t.Tiles,x),
             Moves.Left => (t,x) => this.MoveLeft(t.Tiles,x),
             Moves.Right => (t,x) => this.MoveRight(t.Tiles,x),
+
+            Moves.Up | Moves.Right => (t,x) => this.MoveRight(t.Tiles,x) && this.MoveUp(t.Tiles, x),
+            Moves.Up | Moves.Left => (t,x) => this.MoveLeft(t.Tiles,x) && this.MoveUp(t.Tiles, x),
+            Moves.Down | Moves.Right => (t,x) => this.MoveRight(t.Tiles,x) && this.MoveDown(t.Tiles, x),
+            Moves.Down | Moves.Left => (t,x) => this.MoveLeft(t.Tiles,x) && this.MoveDown(t.Tiles, x),
+
             Moves.Bomb => (t,x) => this.PlaceBomb(t),
             Moves.None => (t,x) => false,
             _ => (t,x) => false,
@@ -89,8 +97,8 @@ namespace Bomberman
                 , this.bombRayFactory
                 )
             {
-                XPos = this.XPos,
-                YPos = this.YPos,
+                XPos = this.XPos + this.Width/2 - Bomb.s_width / 2,
+                YPos = this.YPos + this.Height/2 - Bomb.s_width / 2,
             });
             return true;
         }
@@ -145,7 +153,7 @@ namespace Bomberman
             return false;
         }
         public Player(Player player, IGraphicsDeviceManagerNew graphics, bool checkCollition)
-            : this(player.GetTexture(), graphics, null, null, null, null) 
+            : this(null, graphics, null, null, player.graphicsDevice, null) 
             //Used for collition handling by creating a clone of player and apply movement
             //before checking collitions
             //Maybe its called raycasting? or maybe not.. because im not checking every position inbetweed. only last

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -54,6 +55,53 @@ namespace BombermanExtention
                 data[i] = color;
             }
             return data;
+        }
+        
+
+        
+        public static Color[] AddCircleWithColor(int width
+            , int circleRadius
+            , Color[] data
+            , Color color
+            )
+        {
+            data = data == null 
+                ? new Color[width*width] 
+                : data;
+            var y = 0;
+            for(var i = 0; i< width*width;i++)
+            {
+                var x =  i%width;
+                if(x == width-1)
+                {
+                    y++;
+                }
+                var valueWithOffset = GetValue(x, y, width);
+                var valueWithoutOffset = GetValue(x, y, width);
+
+                if(valueWithOffset > circleRadius*circleRadius || valueWithoutOffset > ((width/2)*(width/2)))
+                {
+                    //utanför cirkeln
+                 //   data[i] = Color.Transparent;
+                }
+                else
+                {
+                    //här är i cirkeln
+                    data[i] = color;
+
+                }
+                
+            }
+            return data;
+        }
+        private static int GetValue(int x,int y, int width)
+        {
+            x = Math.Max(0, x);
+            y = Math.Max(0, y);
+            var deltax = Math.Abs(x-(width/2));
+            var deltay = Math.Abs(y-(width/2));
+
+            return deltax * deltax + deltay * deltay;
         }
     }
 }

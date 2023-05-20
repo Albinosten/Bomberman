@@ -21,7 +21,7 @@ namespace Bomberman
         private readonly ICollitionController collitionController;
         private float rotation;
         private readonly float maxLenght;
-
+        public static float s_maxLenght = 5 * Tile.s_height;
         public BombRay(IGraphicsDeviceManagerNew graphics
             , ICollitionController collitionController
             , GraphicsDevice graphicsDevice
@@ -32,7 +32,7 @@ namespace Bomberman
         {
             this.collitionController = collitionController;
             this.rotation = rotation;
-            this.maxLenght = maxLenght;
+            this.maxLenght = Math.Min(maxLenght, s_maxLenght);
         }
         private Vector2? startPos;
 
@@ -55,16 +55,7 @@ namespace Bomberman
             }
 
             this.startPos = this.startPos ?? new Vector2(this.XPos, this.YPos);
-            // if(!this.hasColided && !this.collitionController.HasColition(map.Tiles.ToList<IPositionalTexture2D>(), this))
-            // {
-            //     this.lenght += (float)gameTime.ElapsedGameTime.TotalSeconds * s_speed;
-            //     this.XPos = this.startPos.Value.X + (this.lenght * (float)Math.Cos(this.rotation));
-            //     this.YPos = this.startPos.Value.Y + (this.lenght * (float)Math.Sin(this.rotation));
-            // }
-            // else
-            // {
-            //     this.hasColided = true;
-            // }
+            
             if(this.lenght < this.maxLenght)
             {
                 this.lenght += (float)gameTime.ElapsedGameTime.TotalSeconds * s_speed;

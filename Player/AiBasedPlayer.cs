@@ -2,6 +2,9 @@ using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Microsoft.Xna.Framework;
+using BombermanExtention;
+
 namespace Bomberman
 {
     public class AiBasedPlayer : IPlayerKeyboardInterpreter
@@ -18,110 +21,163 @@ namespace Bomberman
         }
         private Moves? lastMove = Moves.None;
         double distanceSinceLastMove = 0;
+        double timeBetweenBombs = 8000;
+        double timeSinceLastBomb = 0;
 
         public Moves GetMove(KeyboardState keyboardState, Map map, IPlayer me, double gameTime)
         {
             //override ai controller
-            var move = new PlayerKeyboardInterpreter2().GetMove(keyboardState,map,me,gameTime); 
+            var move = new PlayerKeyboardInterpreter2(null).GetMove(keyboardState,map,me,gameTime); 
             if(move != Moves.None)
             {
                 return move;
             }
-            if(( lastMove.IsHorizontal() && (me.XPos % Tile.s_width) >= Tile.s_width - me.Width)
-                || !lastMove.IsHorizontal() && (me.YPos % Tile.s_height) >= Tile.s_height - me.Height
+
+            this.timeSinceLastBomb += gameTime * 1000;
+            var value = new Random().Next(0, (int)(timeBetweenBombs - timeSinceLastBomb));
+            var opponent = this.GetPos(map.Players[0]);
+
+            var distance = Vector2.Distance(GetPos(me).AsVector(),opponent.AsVector());
+            if((value < 10 || distance <= 2) && this.timeSinceLastBomb > 2000)
+            {
+                this.timeSinceLastBomb = 0;
+                return Moves.Bomb;
+            }
+
+
+            if(( lastMove.IsHorizontal() && (me.XPos % Tile.s_width)  >= (Tile.s_width - me.Width))
+                || !lastMove.IsHorizontal() && (me.YPos % Tile.s_height) >= (Tile.s_height - me.Height)
                 )
             {
                 return lastMove.Value;
             }
-
-            //0.3 Seconds best so far
             if(this.distanceSinceLastMove > 0.01)//try make distance based liek one tile or something.
             {
                 distanceSinceLastMove = 0;
                 lastMove = null;
             }
-                // lastMove = null;
-
             if(!lastMove.HasValue)
             {
-                var result = this.Solver(me, map.Players[0], map, gameTime);
+                var bitMap = map.GetBitMap(false);
+                var result = this.Solver(me
+                    , opponent
+                    , map
+                    , bitMap
+                    , gameTime
+                    , BitMapValue.None
+                    );
                 lastMove = result.Item2;
+                if(result.Item2 == Moves.None)
+                {
+                    lastMove = this.Solver(me
+                        , this.GetFirstSafeTile(bitMap, me)
+                        , map
+                        , bitMap
+                        , gameTime
+                        , BitMapValue.BombRay 
+                            | BitMapValue.Bomb 
+                            | BitMapValue.Player 
+                            | BitMapValue.None
+                        ).Item2;
+                }
             }
 
             this.distanceSinceLastMove+=gameTime;
             return this.lastMove.Value;
         }
-        IList<(int, int, Moves)> GetAdjacent((int x, int y, Moves firstMove) cord)
+        (int y, int x) GetFirstSafeTile(IList<IList<BitMapValue>> bitmap, IPlayer tile)
         {
-            var result = new List<(int,int,Moves)>(4);
-            foreach(var move in this.GetAdjacent((cord.x,cord.y)))
+            var yStart = (int)tile.YPos/Tile.s_height;
+            var xStart = (int)tile.XPos/Tile.s_width;
+            float minDistance = int.MaxValue;
+            (int y, int x) result = (0,0);
+            for(int y = 0; y < bitmap.Count; y++)
             {
-                result.Add((move.Item1, move.Item2, cord.firstMove));
+                for(int x = 0; x < bitmap[y].Count; x++)
+                {
+                    var distance = Vector2.Distance(new Vector2(yStart,xStart), new Vector2(y,x));
+                    if(bitmap[y][x] == BitMapValue.None && distance < minDistance)
+                    {
+                        result = (y,x);
+                        minDistance = distance;
+                    }
+                }
+            }
+            Console.WriteLine("Safest spot: Y: " + result.y + " X: " + result.x);
+            Console.WriteLine("Distance: " + minDistance);
+
+            return result;
+        }
+        IList<(int y, int x, Moves)> GetAdjacent((int y, int x, Moves firstMove) cord)
+        {
+            var result = new List<(int y,int x, Moves)>(4);
+            foreach(var move in this.GetAdjacent((cord.y,cord.x)))
+            {
+                result.Add((move.y, move.x, cord.firstMove));
             }
             return result;
         }
-        (int, int, Moves)[] GetAdjacent((int x, int y) cord)
+        (int y, int x, Moves)[] GetAdjacent((int y, int x) cord)
         {
             return new []
             {
-                (cord.x+1, cord.y, Moves.Right),
-                (cord.x-1, cord.y, Moves.Left),
-                (cord.x, cord.y+1, Moves.Down),
-                (cord.x, cord.y-1, Moves.Up),
+                (cord.y, cord.x+1,  Moves.Right),
+                (cord.y, cord.x-1, Moves.Left),
+                (cord.y+1, cord.x, Moves.Down),
+                (cord.y-1, cord.x,  Moves.Up),
             };
         }
-        (int, int, Moves) GetAdjacent((int x, int y) cord, Moves move) => move switch
+        (int y, int x, Moves) GetAdjacent((int y, int x) cord, Moves move) => move switch
         {
-            Moves.Right => (cord.x+1, cord.y, Moves.Right),
-            Moves.Left =>(cord.x-1, cord.y, Moves.Left),
-            Moves.Down =>(cord.x, cord.y+1, Moves.Down),
-            Moves.Up =>(cord.x, cord.y-1, Moves.Up),
+            Moves.Right => (cord.y, cord.x+1 , Moves.Right),
+            Moves.Left => (cord.y, cord.x-1, Moves.Left),
+            Moves.Down => (cord.y+1, cord.x, Moves.Down),
+            Moves.Up => (cord.y-1, cord.x, Moves.Up),
             _ => (0,0,Moves.None),
         };
-        private (int, int) GetPos(IPlayer player)
+        private (int y, int x) GetPos(IPositionalTexture2D player)
         {
-            return ((int)(player.XPos/Tile.s_width), (int)(player.YPos/Tile.s_height));
+            return ((int)(player.YPos/Tile.s_height), (int)(player.XPos/Tile.s_width));
         }
-        private (int, Moves) Solver(IPlayer me, IPlayer opponent, Map map, double gameTime)
+        private (int, Moves) Solver(IPlayer me
+            , (int y, int x) opponentPos
+            , Map map
+            , IList<IList<BitMapValue>> bitmap
+            , double gameTime
+            , BitMapValue validBitMapValue
+            )
         {
-            var bitmap = map.GetBitMap(false);
-            var max = (bitmap[0].Count()-1, bitmap.Count-1);
-            var visited = new HashSet<(int,int)>();
 
-            var next = new HashSet<(int,int, Moves)>();
-            var pos = GetPos(me);
-            foreach(var move in this.GetPossibleMoves(map, me, map.GraphicMax, gameTime).OrderBy(x => x == this.lastMove))
+            var visited = new HashSet<(int y,int x)>();
+
+            //Feed with first possible moves
+            var next = new HashSet<(int y, int x, Moves)>();
+            foreach(var move in this.GetPossibleMoves(map, me, map.GraphicMax, gameTime) 
+                .OrderByDescending(x => x == this.lastMove)
+                )
             {
-                var a = GetAdjacent(pos, move);
-                if(CanMove(bitmap,a.Item1,a.Item2))
+                var neighbourTiles = GetAdjacent(GetPos(me), move);
+                if(CanMove(bitmap,neighbourTiles.y,neighbourTiles.x, validBitMapValue))
                 {
-                    next.Add(a);
-                    visited.Add((a.Item1, a.Item2));
+                    next.Add(neighbourTiles);
+                    visited.Add((neighbourTiles.y, neighbourTiles.x));
                 }
-            }
-            Console.WriteLine("possible move:");
-            foreach(var a in next)
-            {
-                Console.WriteLine(a);
             }
             var stepps = 0;
             while(next.Count > 0)
             {
-                var nextBatch = new HashSet<(int,int, Moves)>();
+                var nextBatch = new HashSet<(int y, int x, Moves)>();
                 foreach (var current in next)
                 {
-                    var opponentPos = GetPos(opponent);
-                    if((current.Item1, current.Item2) == opponentPos)
+                    if((current.y, current.x) == opponentPos)
                     {
-                        Console.WriteLine("Move: " + current.Item3);
-                        Console.WriteLine("Stepps with end: " + stepps);
                         return (stepps, current.Item3);
                     }
                 
-                    visited.Add((current.Item1, current.Item2));
-                    foreach (var item in FilterOutOfBound(GetAdjacent(current), max)
-                        .Where(x => CanMove(bitmap,x.Item1,x.Item2))
-                        .Where(x => !visited.Contains((x.Item1, x.Item2))))
+                    visited.Add((current.y, current.x));
+                    foreach (var item in GetAdjacent(current)
+                        .Where(x => CanMove(bitmap, x.y, x.x, validBitMapValue))
+                        .Where(x => !visited.Contains((x.y, x.x))))
                     {
                         nextBatch.Add(item);
                     }
@@ -130,30 +186,26 @@ namespace Bomberman
                 next = nextBatch;
                 stepps++;
             }
-            Console.WriteLine("Stepps: " + stepps + " Visited count: " + visited.Count());
 
             return (0, Moves.None);
         }
-        bool CanMove(IList<IList<int>> bitMap, int x, int y)
+        bool CanMove(IList<IList<BitMapValue>> bitMap, int y, int x, BitMapValue validBitMapValue)
         {
-            return bitMap[x][y] == 0;
-        }
-        IEnumerable<(int, int, Moves)> FilterOutOfBound(IList<(int x, int y, Moves _)> cords, (int x, int y) max)
-        {
-            for(int i = 0; i < cords.Count(); i++)
+            if(y < 0 || x < 0 || y >= bitMap.Count || x >= bitMap[0].Count){return false;}
+
+            if(bitMap[y][x] == BitMapValue.None)
             {
-                var cord = cords[i];
-                if(cord.x <= max.x && cord.y <= max.y && cord.x >= 0 && cord.y >= 0)
-                {
-                    yield return cord;
-                }
+                return true;
             }
+            return validBitMapValue.HasFlag(bitMap[y][x]);
+
         }
         
         private IList<Moves> GetPossibleMoves(Map map, IPlayer player,(int maxHeight, int maxWidth) max, double gameTime)
         {
             var moves = new List<Moves>();
             var dist = gameTime *2;
+
             if(player.Clone((Player)player).Move(Moves.Up)(map,dist))moves.Add(Moves.Up);
             if(player.Clone((Player)player).Move(Moves.Left)(map,dist))moves.Add(Moves.Left);
             if(player.Clone((Player)player).Move(Moves.Right)(map,dist))moves.Add(Moves.Right);

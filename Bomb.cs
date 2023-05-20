@@ -39,50 +39,9 @@ namespace Bomberman
             this.graphicsDevice = graphicsDevice;
             this.parent = parent;
             this.bombRayFactory = bombRayFactory;
-            this.GetTexture().SetData(AddCircleWithColor(s_width,s_width/2, Color.Black));
+            this.GetTexture().SetData(TextureCreator.AddCircleWithColor(s_width,s_width/2, null, Color.Black));
         }
-        public static Color[] AddCircleWithColor(int width
-            , int circleRadius
-            , Color color
-            )
-        {
-
-            Color[] data = new Color[width*width];
-            var y = 0;
-            for(var i = 0; i< width*width;i++)
-            {
-                var x =  i%width;
-                if(x == width-1)
-                {
-                    y++;
-                }
-                var valueWithOffset = GetValue(x, y, width);
-                var valueWithoutOffset = GetValue(x,y, width);
-
-                if(valueWithOffset > circleRadius*circleRadius || valueWithoutOffset > ((width/2)*(width/2)))
-                {
-                    //utanför cirkeln
-                 //   data[i] = Color.Transparent;
-                }
-                else
-                {
-                    //här är i cirkeln
-                    data[i] = color;
-
-                }
-                
-            }
-            return data;
-        }
-         private static int GetValue(int x,int y, int width)
-        {
-            x = Math.Max(0, x);
-            y = Math.Max(0, y);
-            var deltax = Math.Abs(x-(width/2));
-            var deltay = Math.Abs(y-(width/2));
-
-            return deltax * deltax + deltay * deltay;
-        }
+         
         public override void Draw(SpriteBatch spriteBatch)
         {
             DrawHelper.Draw(spriteBatch, this);
@@ -103,7 +62,7 @@ namespace Bomberman
             this.creationtime = this.creationtime 
                 ?? totalSeconds;
             
-            if(totalSeconds - (this.creationtime ?? 0f) > 3 
+            if(totalSeconds - (this.creationtime ?? 0f) > 3 //3 
                 && this.bombRays.Count == decimal.Zero)
             {
                 this.bombRays = this.bombRayFactory
@@ -118,7 +77,7 @@ namespace Bomberman
             {
                 this.bombRays[i].Update(gameTime, map);
             }
-            if(gameTime.TotalGameTime.TotalSeconds - (this.creationtime ?? 0f) > 5)
+            if(gameTime.TotalGameTime.TotalSeconds - (this.creationtime ?? 0f) > 5) //5
             {
                 this.bombRays.Clear();
                 this.IsExploded = true;

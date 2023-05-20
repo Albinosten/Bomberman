@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Bomberman
 {
+
     public class Bomberman : Game
     {
         private GraphicsDeviceManagerNew graphics;
@@ -65,6 +66,10 @@ namespace Bomberman
             if(keyboardState.IsKeyDown(Keys.R))
             {
                 this.Initialize();
+            }
+            if(keyboardState.IsKeyDown(Keys.L))
+            {
+                
             }
             if(keyboardState.IsKeyDown(Keys.P))
             {
