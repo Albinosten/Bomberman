@@ -9,6 +9,7 @@ namespace Bomberman
         public PlayerKeyboardInterpreter2(IPlayerKeyboardInterpreter aiPlayer)
         {
             this.aiPlayer = aiPlayer;
+            this.useAiPlayer = true;
         }
 
         public Moves GetMove(KeyboardState keyboardState, Map map, IPlayer player, double gameTime)
